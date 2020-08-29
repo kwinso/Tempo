@@ -20,18 +20,19 @@ namespace Templater
             "node", // NodeJS
             "no-lang", // Template Without language
         };
-        public void NewProject(Arguments args)
+
+        private Settings _settings;
+
+        public bool LoadSettings()
         {
             // Getting the settings file.
-            var settings = GetSettings();
+            _settings = GetSettings();
 
-            /* Checking for invalid setting file */
-            if (settings == null)
-            {
-                Logger.Error("No settings file found.");
-                return;
-            }
-            if (settings.Templates.Count < 1)
+            return _settings != null;
+        }
+        public void NewProject(Arguments args)
+        {
+            if (_settings.Templates.Count < 1)
             {
                 Logger.Warning("No templates in settings file.");
                 Logger.Info("Check here how to write your settings file: ");
@@ -40,7 +41,7 @@ namespace Templater
             }
 
             // Check in templates if requested language exists. If so, try to parse language and create new project
-            foreach (var template in settings.Templates)
+            foreach (var template in _settings.Templates)
             {
                 if (template.Language == args.Language) // Check if requested language exists in settings 
                 {
@@ -128,7 +129,7 @@ namespace Templater
                     return;
                 }
                 
-                Logger.Default("package.json detected.");
+                Logger.Info("Detected package.json");
                 
                 Directory.SetCurrentDirectory(projectPath);
                 
@@ -152,6 +153,25 @@ namespace Templater
                 catch (Win32Exception)
                 {
                     Logger.Warning("Failed to install dependencies.");
+                }
+            }
+        }
+
+        public void ShowTemplates()
+        {
+            foreach (var template in _settings.Templates)
+            {
+                var templatesDir = new DirectoryInfo(template.Path);
+                if (templatesDir.Exists)
+                {
+                    foreach (var directory in templatesDir.GetDirectories())
+                    {
+                        Logger.Default($"{template.Language} : {directory.Name}");   
+                    }
+                }
+                else
+                {
+                    Logger.Warning($"{template.Language}: Path {template.Path} is invalid");
                 }
             }
         }
@@ -179,7 +199,7 @@ namespace Templater
                 
                 if (projectDir.Trim() == "")
                 {
-                    Console.WriteLine("Creating project in current directory");
+                    Logger.Info("Creating project in current directory");
                     return new DirectoryInfo(Directory.GetCurrentDirectory());
                 }
 

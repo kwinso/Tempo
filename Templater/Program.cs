@@ -4,20 +4,36 @@
     {
         static void Main(string[] args)
         {
-            var arguments = ParseArguments(args);
+            var creator = new Creator();
+
+            var settingsLoaded = creator.LoadSettings();
+            
+            if (!settingsLoaded)
+            {
+                Logger.Error("No settings file found.");
+                return;
+            }
+            
+            // List all available templates
+            if (args[0] == "list")
+            {
+                creator.ShowTemplates();
+                return;
+            }
+            
+            var arguments = ParseTemplate(args);
+            
             if (arguments == null)
             {
                 Logger.Default("Usage: templater <language>:<template> <project_name>");
                 Logger.Default("For example: templater node:socket mySocketApp -> Creates NodeJS socket.io server.");
                 return;
             }
-
-            var creator = new Creator();
             
             creator.NewProject(arguments);
         }
         
-        private static Arguments ParseArguments(string[] args)
+        private static Arguments ParseTemplate(string[] args)
         {
             if (args.Length < 2)
             {
