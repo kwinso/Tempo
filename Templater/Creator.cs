@@ -197,14 +197,35 @@ namespace Templater
                     Console.ForegroundColor = ConsoleColor.Magenta;
                     Logger.Info("Installing Dependencies...");
                     Thread.Sleep(1000);
-               
-                    // Start cmd.exe on windows instead of just npm
-                    var program = Environment.OSVersion.Platform == PlatformID.Unix ? "npm" : "cmd.exe";
-                    var programArguments =
-                        Environment.OSVersion.Platform == PlatformID.Unix ? "install" : "npm install";
-                    
-                    var npm = Process.Start(program, programArguments);
-                    npm.WaitForExit();
+
+                    // Run npm in another shell on Windows
+                    if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                    {
+                        Logger.Info("Entering new cmd to install packages.");
+                        
+                        var cmdPsi = new ProcessStartInfo()
+                        {
+                            FileName = "cmd",
+                            RedirectStandardInput = true,
+                            WorkingDirectory = projectPath
+                        };
+                        var cmd = Process.Start(cmdPsi);
+                        
+                        cmd.StandardInput.WriteLine($"npm install & exit");
+                        cmd.WaitForExit();
+                    }
+                    else // For Unix and other
+                    {
+                        var npmPsi = new ProcessStartInfo()
+                        {
+                            FileName = "npm",
+                            Arguments = "install",
+                            RedirectStandardOutput = false,
+                            RedirectStandardError = false,
+                        };
+                        var npm = Process.Start(npmPsi);
+                        npm.WaitForExit();
+                    }
                 }
                 catch (Win32Exception)
                 {
