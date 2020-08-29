@@ -9,39 +9,38 @@ namespace Templater
             var arguments = ParseArguments(args);
             if (arguments == null)
             {
-                Console.WriteLine("Usage: templater new <language> <template> <project_name>");
-                Console.WriteLine("For example: templater new node socket mySockets -> Creates NodeJS socket.io server.");
+                Logger.Default("Usage: templater <language>:<template> <project_name>");
+                Logger.Default("For example: templater node:socket mySocketApp -> Creates NodeJS socket.io server.");
                 return;
             }
-            Console.WriteLine(arguments.Language);
 
             var creator = new Creator();
-
-            if (arguments.Mode == "new")
-            {
-                creator.NewProject(arguments);
-            }
-            else
-            {
-                Console.WriteLine($"Unknown command {arguments.Mode}");
-            }
+            
+            creator.NewProject(arguments);
         }
 
         // TODO: Make another arguments system
         // Like this: templater language:template <name>
         private static Arguments ParseArguments(string[] args)
         {
-            if (args.Length < 4)
+            if (args.Length < 2)
+            {
+                return null;
+            }
+
+            // Command is a string like "language:template", it parses to ["language", "template"]
+            var command = args[0].Split(":");
+            
+            if (command.Length < 2)
             {
                 return null;
             }
 
             return new Arguments()
             {
-                Mode = args[0],
-                Language = args[1],
-                Template = args[2],
-                ProjectName = args[3]
+                Language = command[0],
+                Template = command[1],
+                ProjectName = args[1]
             };
         }
     }
