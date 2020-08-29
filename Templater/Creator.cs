@@ -33,26 +33,7 @@ namespace Templater
 
             return _settings != null;
         }
-        
-        public void ShowTemplates()
-        {
-            foreach (var template in _settings.Templates)
-            {
-                var templatesDir = new DirectoryInfo(template.Path);
-                if (templatesDir.Exists)
-                {
-                    foreach (var directory in templatesDir.GetDirectories())
-                    {
-                        Logger.Default($"{template.Language}:{directory.Name}");   
-                    }
-                }
-                else
-                {
-                    Logger.Warning($"{template.Language}: Path {template.Path} is invalid");
-                }
-            }
-        }
-        
+
         private Settings GetSettings()
         {
             var pathToSettingsFile = AppDomain.CurrentDomain.BaseDirectory + "/settings.json";
@@ -68,6 +49,42 @@ namespace Templater
         }
 
         #endregion
+        
+        public void ShowTemplates()
+        {
+            foreach (var template in _settings.Templates)
+            {
+                template.Path = ToFullPath(template.Path);
+                
+                var templatesDir = new DirectoryInfo(template.Path);
+                if (templatesDir.Exists)
+                {
+                    foreach (var directory in templatesDir.GetDirectories())
+                    {
+                        Logger.Default($"{template.Language}:{directory.Name}");   
+                    }
+                }
+                else
+                {
+                    Logger.Warning($"{template.Language}: Path {template.Path} is invalid");
+                }
+            }
+        }
+        
+        private string ToFullPath(string path)
+        {
+            if (path == null)
+            {
+                throw new NullReferenceException();
+            }
+            
+            if (path.StartsWith("@local"))
+            {
+                path = path.Replace("@local",AppDomain.CurrentDomain.BaseDirectory);
+            }
+
+            return path;
+        }
         
 
         public void NewProject(Arguments args)
@@ -91,11 +108,8 @@ namespace Templater
                         // TODO: Post link to the GitHub and how to create templates.
                         return;
                     }
-
-                    if (template.Path.StartsWith("@local"))
-                    {
-                        template.Path = template.Path.Replace("@local",AppDomain.CurrentDomain.BaseDirectory);
-                    }
+                    
+                    template.Path = ToFullPath(template.Path);
                     
                     if (Directory.Exists($"{template.Path}/{args.Template}")) // if Directory with template exists
                     {
@@ -183,16 +197,13 @@ namespace Templater
                     Console.ForegroundColor = ConsoleColor.Magenta;
                     Logger.Info("Installing Dependencies...");
                     Thread.Sleep(1000);
+               
+                    // Start cmd.exe on windows instead of just npm
+                    var program = Environment.OSVersion.Platform == PlatformID.Unix ? "npm" : "cmd.exe";
+                    var programArguments =
+                        Environment.OSVersion.Platform == PlatformID.Unix ? "install" : "npm install";
                     
-                    var npmPsi = new ProcessStartInfo()
-                    {
-                        FileName = "npm",
-                        Arguments = "install",
-                        RedirectStandardOutput = false,
-                        RedirectStandardError = false,
-                    };
-                    
-                    var npm = Process.Start(npmPsi);
+                    var npm = Process.Start(program, programArguments);
                     npm.WaitForExit();
                 }
                 catch (Win32Exception)

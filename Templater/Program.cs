@@ -14,19 +14,19 @@
                 return;
             }
             
-            // List all available templates
-            if (args[0] == "list")
-            {
-                creator.ShowTemplates();
-                return;
-            }
-            
             var arguments = ParseTemplate(args);
             
             if (arguments == null)
             {
+                if (args.Length == 1 && args[0] == "list")
+                {
+                    creator.ShowTemplates();
+                    return;
+                }
+                
                 Logger.Default("Usage: templater <language>:<template> <project_name>");
                 Logger.Default("For example: templater node:socket mySocketApp -> Creates NodeJS socket.io server.");
+                Logger.Default("Use: templater list for see available templates.");
                 return;
             }
             
