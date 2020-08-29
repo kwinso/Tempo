@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Templater
+﻿namespace Templater
 {
     static class Program
     {
@@ -18,9 +16,7 @@ namespace Templater
             
             creator.NewProject(arguments);
         }
-
-        // TODO: Make another arguments system
-        // Like this: templater language:template <name>
+        
         private static Arguments ParseArguments(string[] args)
         {
             if (args.Length < 2)
@@ -31,7 +27,7 @@ namespace Templater
             // Command is a string like "language:template", it parses to ["language", "template"]
             var command = args[0].Split(":");
             
-            if (command.Length < 2)
+            if (command.Length != 2)
             {
                 return null;
             }

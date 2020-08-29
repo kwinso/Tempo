@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 
@@ -14,6 +15,11 @@ namespace Templater
     }
     public class Creator
     {
+        private static readonly string[] KnownLanguages = new[]
+        {
+            "node", // NodeJS
+            "no-lang", // Template Without language
+        };
         public void NewProject(Arguments args)
         {
             // Getting the settings file.
@@ -38,30 +44,64 @@ namespace Templater
             {
                 if (template.Language == args.Language) // Check if requested language exists in settings 
                 {
+                    if (!KnownLanguages.Contains(template.Language))
+                    {
+                        Logger.Error($"Unknown template language {template.Language}");
+                        // TODO: Post link to the GitHub and how to create templates.
+                        return;
+                    }
+                    
                     if (Directory.Exists($"{template.Path}/{args.Template}")) // if Directory with template exists
                     {
                         Logger.Info($"Template for {args.Template} found in {template.Path}");
                         
-                        if (template.Language == "node")
+                        var projectRootPath = CreateProjectFromTemplate(args.ProjectName, template.Path, args.Template);
+
+                        if (projectRootPath != null) // Project Directory created.
                         {
-                            CreateNodeProject(args.ProjectName, template.Path, args.Template);
-                            return;
+                            switch (template.Language)
+                            {
+                                case "node":
+                                {
+                                    TryInstallDependencies(Language.Node, projectRootPath);
+                                    Logger.Info("NodeJS project created.");
+                                    break;
+                                }
+                                case "no-lang": // Template without language (Will not try to install dependencies)
+                                {
+                                    Logger.Info("No-Language project created.");
+                                    break;
+                                }
+                                default:
+                                {
+                                    Logger.Info($"Created project from template {template.Language}:{args.Template}");
+                                    break;
+                                }
+                            }
                         }
-                        else if (template.Language == "no-lang")
-                        {
-                            // TODO: Just copy from the template without any additional operations
-                            throw new NotImplementedException("In development.");
-                        }
-                        else
-                        {
-                            Logger.Error($"Unknown template language {template.Language}");
-                            // TODO: Post link to the GitHub and how to create templates.
-                            return;
-                        }
+                        return; // Exit after creating project
                     }
                 }
             }
             Logger.Error($"Language \"{args.Language}\" or template \"{args.Template}\" not found in settings file.");
+        }
+        
+        // Returns path to the project root
+        private string CreateProjectFromTemplate(string projectName, string templateDirectory, string template)
+        {
+            var projectDirectory = CreateProjectDirectory(projectName);
+            var templatePath = $"{templateDirectory}/{template}";
+            
+            if (!Directory.Exists(templatePath))
+            {
+                Logger.Error($"Template \"{template}\" not found.");
+                return null;
+            }
+            
+            // Copy files from template to the project root
+            CopyFromTemplate($"{templateDirectory}/{template}",projectDirectory.FullName);
+
+            return projectDirectory.FullName;
         }
 
         private DirectoryInfo CreateProjectDirectory(string projectName)
@@ -75,30 +115,7 @@ namespace Templater
             
             return new DirectoryInfo(projectRoot);
         }
-
-        private void CreateNodeProject(string projectName, string templateDirectory, string template)
-        {
-            var projectDirectory = CreateProjectDirectory(projectName);
-            var templatePath = $"{templateDirectory}/{template}";
-            
-            if (!Directory.Exists(templatePath))
-            {
-                Logger.Error($"Template \"{template}\" not found.");
-                return;
-            }
-            
-            // Copy files from template to the project root
-            CopyFromTemplate(
-                $"{templateDirectory}/{template}",
-                projectDirectory.FullName
-            );
-
-            TryInstallDependencies(Language.Node, projectDirectory.FullName);
-            
-            Logger.Info("Project Created.");
-        }
-
-
+        
         private void TryInstallDependencies(Language lang, string projectPath)
         {
             if (lang == Language.Node)
@@ -157,8 +174,9 @@ namespace Templater
         {
             while (true)
             {
-                Logger.Default("Directory for the project (Current Directory by default): ");
+                Console.Write("Directory for the project (Current Directory by default): ");
                 var projectDir = Console.ReadLine();
+                
                 if (projectDir.Trim() == "")
                 {
                     Console.WriteLine("Creating project in current directory");
