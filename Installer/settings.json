@@ -1,0 +1,14 @@
+{
+  "Templates": [
+    {
+      "Language": "node",
+      "Path": "@local/Templates/Node"
+    },
+    {
+      "Language": "python",
+      "Path": "@local/Templates/Python"
+    }
+  ]
+}
+
+

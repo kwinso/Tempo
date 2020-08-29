@@ -18,11 +18,14 @@ namespace Templater
         private static readonly string[] KnownLanguages = new[]
         {
             "node", // NodeJS
-            "no-lang", // Template Without language
+            "python",
+            "no-lang" // Template Without language
         };
 
         private Settings _settings;
 
+        #region Settings
+        
         public bool LoadSettings()
         {
             // Getting the settings file.
@@ -30,6 +33,43 @@ namespace Templater
 
             return _settings != null;
         }
+        
+        public void ShowTemplates()
+        {
+            foreach (var template in _settings.Templates)
+            {
+                var templatesDir = new DirectoryInfo(template.Path);
+                if (templatesDir.Exists)
+                {
+                    foreach (var directory in templatesDir.GetDirectories())
+                    {
+                        Logger.Default($"{template.Language}:{directory.Name}");   
+                    }
+                }
+                else
+                {
+                    Logger.Warning($"{template.Language}: Path {template.Path} is invalid");
+                }
+            }
+        }
+        
+        private Settings GetSettings()
+        {
+            var pathToSettingsFile = AppDomain.CurrentDomain.BaseDirectory + "/settings.json";
+            if (!File.Exists(pathToSettingsFile))
+            {
+                return null;
+            }
+
+            var json = File.ReadAllText(pathToSettingsFile);
+            var settings = JsonSerializer.Deserialize<Settings>(json);
+            
+            return settings;
+        }
+
+        #endregion
+        
+
         public void NewProject(Arguments args)
         {
             if (_settings.Templates.Count < 1)
@@ -50,6 +90,11 @@ namespace Templater
                         Logger.Error($"Unknown template language {template.Language}");
                         // TODO: Post link to the GitHub and how to create templates.
                         return;
+                    }
+
+                    if (template.Path.StartsWith("@local"))
+                    {
+                        template.Path = template.Path.Replace("@local",AppDomain.CurrentDomain.BaseDirectory);
                     }
                     
                     if (Directory.Exists($"{template.Path}/{args.Template}")) // if Directory with template exists
@@ -73,10 +118,10 @@ namespace Templater
                                     Logger.Info("No-Language project created.");
                                     break;
                                 }
-                                default:
+                                case "python":
                                 {
-                                    Logger.Info($"Created project from template {template.Language}:{args.Template}");
-                                    break;
+                                    Logger.Info("Python project created.");
+                                    break; 
                                 }
                             }
                         }
@@ -156,40 +201,7 @@ namespace Templater
                 }
             }
         }
-
-        public void ShowTemplates()
-        {
-            foreach (var template in _settings.Templates)
-            {
-                var templatesDir = new DirectoryInfo(template.Path);
-                if (templatesDir.Exists)
-                {
-                    foreach (var directory in templatesDir.GetDirectories())
-                    {
-                        Logger.Default($"{template.Language} : {directory.Name}");   
-                    }
-                }
-                else
-                {
-                    Logger.Warning($"{template.Language}: Path {template.Path} is invalid");
-                }
-            }
-        }
         
-        private Settings GetSettings()
-        {
-            var pathToSettingsFile = AppDomain.CurrentDomain.BaseDirectory + "/settings.json";
-            if (!File.Exists(pathToSettingsFile))
-            {
-                return null;
-            }
-
-            var json = File.ReadAllText(pathToSettingsFile);
-            var settings = JsonSerializer.Deserialize<Settings>(json);
-            
-            return settings;
-        }
-
         private DirectoryInfo GetProjectDirectory()
         {
             while (true)
