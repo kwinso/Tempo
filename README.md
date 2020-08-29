@@ -10,7 +10,7 @@ $ cd Templater
 
 Now, you have to ways to go:
 - Use installer and get configured program.
-- Build and [configure](https://github.com) system by yourself.
+- Build and [configure](https://github.com/uwumouse/Templater/blob/master/SelfInstalling.md) system by yourself.
 
 Run:
 ```sh
@@ -40,7 +40,7 @@ They're located in **Build/Templates** Folder, you can change them as you want.
 
 ## I want more templates!
 You easily can create your own templates and locate them anywhere you want.
-See [**here**](https://github.com) how to **create templates**.
+See [**here**](https://github.com/uwumouse/Templater/blob/master/CreatingTemplate.md) how to **create templates**.
 
 # Which templates have I already created?
 To see available templates and potential warnings, run:
