@@ -9,7 +9,7 @@ $ cd Templater
 ```
 
 Now, you have to ways to go:
-- Use installer and get configured program.
+- Using installer (Creates default templates and settings for the program. Program will be added to path).
 - Build and [configure](https://github.com/uwumouse/Templater/blob/master/SelfInstalling.md) system by yourself.
 
 Run:
