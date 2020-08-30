@@ -2,11 +2,9 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text.Json;
 using System.Threading;
 
-namespace Templater
+namespace Tempo
 {
     // Enum for checking languages 
     public enum Language
@@ -15,111 +13,34 @@ namespace Templater
     }
     public class Creator
     {
-        private static readonly string[] KnownLanguages = new[]
+        public void NewProject(TemplateInfo args)
         {
-            "node", // NodeJS
-            "python",
-            "no-lang" // Template Without language
-        };
-
-        private Settings _settings;
-
-        #region Settings
-        
-        public bool LoadSettings()
-        {
-            // Getting the settings file.
-            _settings = GetSettings();
-
-            return _settings != null;
-        }
-
-        private Settings GetSettings()
-        {
-            var pathToSettingsFile = AppDomain.CurrentDomain.BaseDirectory + "/settings.json";
-            if (!File.Exists(pathToSettingsFile))
+            if (SettingsManager.TemplateGroups.Count < 1)
             {
-                return null;
-            }
-
-            var json = File.ReadAllText(pathToSettingsFile);
-            var settings = JsonSerializer.Deserialize<Settings>(json);
-            
-            return settings;
-        }
-
-        #endregion
-        
-        public void ShowTemplates()
-        {
-            foreach (var template in _settings.Templates)
-            {
-                template.Path = ToFullPath(template.Path);
-                
-                var templatesDir = new DirectoryInfo(template.Path);
-                if (templatesDir.Exists)
-                {
-                    foreach (var directory in templatesDir.GetDirectories())
-                    {
-                        Logger.Default($"{template.Language}:{directory.Name}");   
-                    }
-                }
-                else
-                {
-                    Logger.Warning($"{template.Language}: Path {template.Path} is invalid");
-                }
-            }
-        }
-        
-        private string ToFullPath(string path)
-        {
-            if (path == null)
-            {
-                throw new NullReferenceException();
+                throw new NullReferenceException("No templates in settings file.");
             }
             
-            if (path.StartsWith("@local"))
-            {
-                path = path.Replace("@local",AppDomain.CurrentDomain.BaseDirectory);
-            }
-
-            return path;
-        }
-        
-
-        public void NewProject(Arguments args)
-        {
-            if (_settings.Templates.Count < 1)
-            {
-                Logger.Warning("No templates in settings file.");
-                Logger.Info("Check here how to write your settings file: ");
-                // TODO: Link to the GitHub Repo
-                return;
-            }
-
             // Check in templates if requested language exists. If so, try to parse language and create new project
-            foreach (var template in _settings.Templates)
+            foreach (var group in SettingsManager.TemplateGroups)
             {
-                if (template.Language == args.Language) // Check if requested language exists in settings 
+                if (group.Name == args.GroupName) // Check if requested language exists in settings 
                 {
-                    if (!KnownLanguages.Contains(template.Language))
+                    if (String.IsNullOrEmpty(group.Path))
                     {
-                        Logger.Error($"Unknown template language {template.Language}");
-                        // TODO: Post link to the GitHub and how to create templates.
-                        return;
+                        throw new Exception($"Template group \"{group.Name}\" does not have \"Path\" property.");
                     }
                     
-                    template.Path = ToFullPath(template.Path);
+                    var absolutePath = PathConverter.ToAbsolutePath(group.Path); 
                     
-                    if (Directory.Exists($"{template.Path}/{args.Template}")) // if Directory with template exists
+                    if (Directory.Exists($"{absolutePath}/{args.Template}")) // if Directory with template exists
                     {
-                        Logger.Info($"Template for {args.Template} found in {template.Path}");
+                        Logger.Info($"Template \"{args.Template}\" found in {group.Name} - {absolutePath}");
                         
-                        var projectRootPath = CreateProjectFromTemplate(args.ProjectName, template.Path, args.Template);
+                        var projectRootPath = CreateProjectFromTemplate(args.ProjectName, absolutePath, args.Template);
 
-                        if (projectRootPath != null) // Project Directory created.
+                        if (projectRootPath != null && group.Language != null) // Project Directory created.
                         {
-                            switch (template.Language)
+                            switch (group.Language)
                             {
                                 case "node":
                                 {
@@ -127,15 +48,10 @@ namespace Templater
                                     Logger.Info("NodeJS project created.");
                                     break;
                                 }
-                                case "no-lang": // Template without language (Will not try to install dependencies)
+                                default:
                                 {
-                                    Logger.Info("No-Language project created.");
+                                    Logger.Info("Project created from template.");
                                     break;
-                                }
-                                case "python":
-                                {
-                                    Logger.Info("Python project created.");
-                                    break; 
                                 }
                             }
                         }
@@ -143,7 +59,7 @@ namespace Templater
                     }
                 }
             }
-            Logger.Error($"Language \"{args.Language}\" or template \"{args.Template}\" not found in settings file.");
+            throw new Exception($"Group \"{args.GroupName}\" or template \"{args.Template}\" not found in settings file.");
         }
         
         // Returns path to the project root
@@ -154,8 +70,7 @@ namespace Templater
             
             if (!Directory.Exists(templatePath))
             {
-                Logger.Error($"Template \"{template}\" not found.");
-                return null;
+                throw new Exception($"Template \"{template}\" not found.");
             }
             
             // Copy files from template to the project root
@@ -201,8 +116,6 @@ namespace Templater
                     // Run npm in another shell on Windows
                     if (Environment.OSVersion.Platform == PlatformID.Win32NT)
                     {
-                        Logger.Info("Entering new cmd to install packages.");
-                        
                         var cmdPsi = new ProcessStartInfo()
                         {
                             FileName = "cmd",
@@ -212,6 +125,9 @@ namespace Templater
                         var cmd = Process.Start(cmdPsi);
                         
                         cmd.StandardInput.WriteLine($"npm install & exit");
+                        
+                        Logger.Info("Entered new cmd to install packages.");
+                        
                         cmd.WaitForExit();
                     }
                     else // For Unix and other
@@ -249,8 +165,7 @@ namespace Templater
 
                 if (!Directory.Exists(projectDir.Trim()))
                 {
-                    Logger.Error($"No directory in \"{projectDir}\"");
-                    continue;
+                    throw new Exception($"No directory in \"{projectDir}\"");
                 }
                 
                 return  new DirectoryInfo(projectDir);

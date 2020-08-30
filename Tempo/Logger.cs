@@ -1,8 +1,6 @@
 using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
-namespace Templater
+namespace Tempo
 {
     public static class Logger
     {
