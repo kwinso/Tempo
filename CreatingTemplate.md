@@ -1,35 +1,32 @@
-# Creating Templates
-Here will be explained how to add templates to a program scope.
+# Creating Template Group
+Here will be explained how to add new template group to a program scope.
 
-## Create Settings File
-`settings.json` is a file responsive for managing templates folder.  
-Create this file and write:
-```json
-{
-  "Templates": [
-  ]
-}
-```
-So, `Templates` will store, wow... _Templates!_
-Now, you need to add first template.
+Map
+- [Creating group](#creating-group-and-templates)
+- [Adding group](#adding-group-to-the-program-scope)
+- [Language property](#about-languages)
+- [Using Template](#using-template)
+- [Unregistering group](#unregistering-templates)
+- [In Addition](#in-addition)
 
-## Creating Templates Folder.
+
+## Creating group and templates
 Let's say I want to create "Hello, World" program in python.  
-I need to create folder where I will store my templates.
+I need to create template group and store my template there.
 
 I'll do it in my **home** folder:
 ```sh
-$ mkdir Templates
-$ cd Templates
+$ mkdir Groups
+$ cd Groups
 ```
-And then folder for the python templates.
+And then group for the python templates.
 ```sh
 $ mkdir Python
 $ cd Python
 ```
 _**You can name folders and locate folders as you want**_  
 Now, time to create template.
-First of all, create folder, name of a folder represents name of a template.  
+You need to know, that name of a folder represents name of a template.
 I'll name my template `hello`:
 ```sh
 $ mkdir hello
@@ -41,60 +38,75 @@ I created little script in python, `main.py`:
 print("Hello, World!")
 ```
 
-**Our template is ready for adding to the settings!**
+**Our group is ready for adding to the settings!**
 
 
-## Adding template to the program scope.
-Do you remember that file `settings.json` in program directory?  
-Add to the `Templates` array object like this:
-```json
-{
-  "Language": "<language of app>",
-  "Path": "<path to the folder with the templates>"
-}
+## Adding group to the program scope.
+Once you created your group, you will need to add it to the program scope to use templates from there.  
+You can do it by running command `add`:
+```sh
+$ templater add <language>:<name_of_group> <path>
 ```
-For me it's:
-```json
-{
-  "Language": "python",
-  "Path": "/home/uwumouse/Templates/Python/"
-}
+So, what are these variables? Let me explain:
+- `<language>` - Language of your templates, e.g. `node`, `python`
+- `<name_of_group>` - Any name you want to give to your group of templates (Without spaces). Used for determining groups in program.
+- `<path>` - Actual path to the Template Groups Folder.
+
+For me it's
+```sh
+$ tempo add python:PythonTemplates /home/uwumouse/Groups/Python
 ```
-As you remember, I store my python templates in `/home/Templates/Python/`.  
-So that's why I provided that path, you must provide path where you created your template.
 
-**You should provide path to the folder where you store templates, not to the actual templates!**
+As you remember, I store my python templates in `/home/uwumouse/Groups/Python/`.  
+So that's why I provided that path, you must provide path where you created your group folder.
 
-## Be Careful With Languages
-Now Templater supports only these languages:
-- NodeJS - `node`
-- Python - `python`
+**You should provide path to the folder where you store your group, not to the actual templates!**
 
-Languages are used for installing dependencies for the project.  
-So, you can not to store, for example, `node_modules` in your template. You will need only `package.json` to create project.  
-Unfortunately, these feature works _only for NodeJS_, but another languages will be implemented soon.
+## About languages
+Languages are used for automatically installing dependencies for the project.  
+*Tempo supports only NodeJS* at this moment.  
 
-But what to do, if you got unsupported language?
-You can provide `no-lang` property in `"Language"` field and Templater will skip language and just create project from template.
+If you provide `node` as Group language, Tempo will try to find `package.json` in your template and install dependencies from it.  
+Basically, that means you don't have to _store `node_modules`_ in your template, it'll be installed by Tempo.
+
+
+But what to do, if you don't use NodeJS?  
+You still can provide any language, but this will be used only in `list` command.  
+Or do not provide language at all.  
+There's shortcut for this:
+```sh
+$ tempo add :PythonTemplates /home/uwumouse/Groups/Python
+```
+Just put semicolon before the name of Group and it'll be without language.
+You can always add language to your template, just change property `Language` from `""` to needed language.
 
 ## Using Template
 Now, to try out your template just run this:
 ```sh
-$ Templater python:hello MyHelloWorld
+$ tempo PythonTemplates:hello MyHelloWorld
 ```
 where:
-- `python` - Language you provided in settings
+- `PythonTemplates` - Name of a group where your template is stored.
 - `hello` - Name of the folder where template is stored.
 - `MyHelloWorld` - Name of the your new project.
 
 Answer some questions and... voila! You have fresh project just built from your template!
 
+## Unregistering Templates
+To unregister group, run this command:
+```sh
+$ tempo remove <group_name>
+``` 
+From this moment no templates will be searched in this group.
+
 ## In Addition
-Also, if you want to put your templates folder in the one folder with Templater executable you can type this:
-```json
+Also, if you want to put your templates group into one folder with Templater executable you can type start your path with
+`@local`.
+You might seen this in `settings.json`:
+```json5
 {
-  "Path": "@local/MyLocalTemplates/"
+  // Example from program
+  "Path": "@local/Templates/Node"
 }
 ```
-You could seen it in Build from Installer.
 This `@local` statement will be changed to absolute path in runtime.

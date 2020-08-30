@@ -47,10 +47,15 @@ namespace Tempo
                 var templatesDir = new DirectoryInfo(absolutePath);
                 if (templatesDir.Exists)
                 {
+                    // Check if language is specified
+                    var groupLanguage = String.IsNullOrEmpty(template.Language.Trim())
+                        ? "Not Specified"
+                        : template.Language;
+                    
                     Logger.Info($"Template group {template.Name} at {template.Path}");
                     foreach (var directory in templatesDir.GetDirectories())
                     {
-                        Logger.Default($"\tTemplate: {directory.Name}, language: { template.Language ?? "Not Specified" }");   
+                        Logger.Default($"\tTemplate: {directory.Name}, language: { groupLanguage }");   
                     }
                 }
                 else
