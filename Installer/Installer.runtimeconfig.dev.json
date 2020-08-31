@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "/home/umouse/.dotnet/store/|arch|/|tfm|",
+      "/home/umouse/.nuget/packages"
+    ]
+  }
+}
