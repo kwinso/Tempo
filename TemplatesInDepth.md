@@ -7,6 +7,7 @@ Map
 - [Language property](#about-languages)
 - [Using Template](#using-template)
 - [Unregistering group](#unregistering-templates)
+- [Hiding templates](#hiding-templates)
 - [In Addition](#in-addition)
 
 
@@ -45,7 +46,7 @@ print("Hello, World!")
 Once you created your group, you will need to add it to the program scope to use templates from there.  
 You can do it by running command `add`:
 ```sh
-$ templater add <language>:<name_of_group> <path>
+$ templater add <name_of_group>:<language> <path>
 ```
 So, what are these variables? Let me explain:
 - `<language>` - Language of your templates, e.g. `node`, `python`
@@ -54,7 +55,7 @@ So, what are these variables? Let me explain:
 
 For me it's
 ```sh
-$ tempo add python:PythonTemplates /home/uwumouse/Groups/Python
+$ tempo add PythonTemplates:python /home/uwumouse/Groups/Python
 ```
 
 As you remember, I store my python templates in `/home/uwumouse/Groups/Python/`.  
@@ -75,18 +76,18 @@ You still can provide any language, but this will be used only in `list` command
 Or do not provide language at all.  
 There's shortcut for this:
 ```sh
-$ tempo add :PythonTemplates /home/uwumouse/Groups/Python
+$ tempo add PythonTemplates /home/uwumouse/Groups/Python
 ```
 Just put semicolon before the name of Group and it'll be without language.
-You can always add language to your template, just change property `Language` from `""` to needed language.
+You can always add language to your template, just change property `Language` from `null` to needed language or re-create group by removing and adding again with language.
 
 ## Using Template
 Now, to try out your template just run this:
 ```sh
-$ tempo PythonTemplates:hello MyHelloWorld
+$ tempo @PythonTemplates/hello MyHelloWorld
 ```
 where:
-- `PythonTemplates` - Name of a group where your template is stored.
+- `@PythonTemplates` - Name of a group where your template is stored.
 - `hello` - Name of the folder where template is stored.
 - `MyHelloWorld` - Name of the your new project.
 
@@ -98,6 +99,19 @@ To unregister group, run this command:
 $ tempo remove <group_name>
 ``` 
 From this moment no templates will be searched in this group.
+
+## Hiding templates.
+If you have directories that needs to be ignored by Tempo, you can use:
+```sh
+$ tempo hide @<template_group>/<to_be_hidden>
+```
+Now you cannot use `<to_be_hidden>` as a name for template, since it's _ignored_.  
+
+Same as hide, you can "show" back your template:
+```sh
+$ tempo show @<template_group>/<to_be_hidden>
+```
+
 
 ## In Addition
 Also, if you want to put your templates group into one folder with Templater executable you can type start your path with

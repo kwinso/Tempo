@@ -8,7 +8,7 @@ namespace Tempo
         {
             if (path == null)
             {
-                throw new NullReferenceException();
+                throw new NullReferenceException("Path cannot be empty");
             }
             
             if (path.StartsWith("@local"))

@@ -34,6 +34,11 @@ namespace Tempo
                     
                     if (Directory.Exists($"{absolutePath}/{args.Template}")) // if Directory with template exists
                     {
+                        if (group.Hidden.Contains(args.Template))
+                        {
+                            Logger.Error($"@{group.Name}/{args.Template} cannot be used since it's hidden.");
+                            return;
+                        }
                         Logger.Info($"Template \"{args.Template}\" found in {group.Name} - {absolutePath}");
                         
                         var projectRootPath = CreateProjectFromTemplate(args.ProjectName, absolutePath, args.Template);

@@ -1,5 +1,14 @@
 {
-  "templates": [
-    "/home/umouse/Documents/Templates"
+  "TemplateGroups": [
+    {
+      "Language": "node",
+      "Name": "base_node",
+      "Path": "@local/Templates/Node"
+    },
+    {
+      "Language": "python",
+      "Name": "base_py",
+      "Path": "@local/Templates/Python"
+    }
   ]
 }

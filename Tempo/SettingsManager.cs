@@ -32,35 +32,71 @@ namespace Tempo
                 throw new Exception("Failed to load settings file.");
             }
         }
+
+        public static void HideTemplate(string groupName, string templateName)
+        {
+            foreach (var group in TemplateGroups)
+            {
+                if (group.Name == groupName)
+                {
+                    group.HideTemplate(templateName);
+                    Save();
+                    Logger.Info($"@{groupName}/{templateName} no longer will be parsed as template");
+                    return;
+                }
+            }
+            
+            Logger.Warning($"{groupName} not found.");
+        }
+
+        public static void RemoveFromHidden(string groupName, string templateName)
+        {
+            foreach (var templateGroup in TemplateGroups)
+            {
+                if (templateGroup.Name == groupName)
+                {
+                    templateGroup.RemoveFromHidden(templateName);
+                    Save();
+                    Logger.Info($"@{groupName}/{templateName} will be parsed is a template now.");
+                    return;
+                }
+            }
+            
+            Logger.Warning($"{groupName} not found.");
+        }
         
         public static void ListGroups()
         {
-            foreach (var template in TemplateGroups)
+            foreach (var group in TemplateGroups)
             {
-                var absolutePath = PathConverter.ToAbsolutePath(template.Path);
+                var absolutePath = PathConverter.ToAbsolutePath(group.Path);
                 
-                if (string.IsNullOrEmpty(template.Name))
+                if (string.IsNullOrEmpty(group.Name))
                 {
-                    Logger.Warning($"Template group at \"{template.Path}\" does not have name.");
+                    Logger.Warning($"Template group at \"{group.Path}\" does not have name.");
                     Logger.Warning("You will not able to build from templates in this folder. You can fix it in settings.json");
                 }
                 var templatesDir = new DirectoryInfo(absolutePath);
                 if (templatesDir.Exists)
                 {
                     // Check if language is specified
-                    var groupLanguage = String.IsNullOrEmpty(template.Language.Trim())
+                    var groupLanguage = String.IsNullOrEmpty(group.Language.Trim())
                         ? "Not Specified"
-                        : template.Language;
+                        : group.Language;
                     
-                    Logger.Info($"Template group {template.Name} at {template.Path}");
+                    Logger.Info($"Template group {group.Name} at {group.Path}");
                     foreach (var directory in templatesDir.GetDirectories())
                     {
-                        Logger.Default($"\tTemplate: {directory.Name}, language: { groupLanguage }");   
+                        var ignoredMessage = "";
+                        if (group.Hidden != null)
+                            ignoredMessage = group.Hidden.Contains(directory.Name) ? "[IGNORED]": "";
+                        
+                        Logger.Default($"\t{ignoredMessage} Template: {directory.Name}, language: { groupLanguage }, using: @{group.Name}/{directory.Name}");   
                     }
                 }
                 else
                 {
-                    Logger.Warning($"Template group \"{template.Name ?? "~No Name~"}\": Path \"{template.Path}\" is invalid");
+                    Logger.Warning($"Template group \"{group.Name ?? "~No Name~"}\": Path \"{group.Path}\" is invalid");
                 }
             }
         }
@@ -76,8 +112,7 @@ namespace Tempo
             {
                 if (template.Name == newTemplateGroup.Name)
                 {
-                    Logger.Error($"Template folder with name \"{newTemplateGroup.Name}\" already exists!");
-                    return;
+                    throw new ArgumentException($"Template folder with name \"{newTemplateGroup.Name}\" already exists!");
                 }
             }
             _settings.Update(newTemplateGroup);
@@ -132,14 +167,32 @@ namespace Tempo
         public string Name { get; private set; } // Of the template folder
         
         [JsonProperty]
+        public List<string> Hidden { get; private set; } // Names that are ignored
+
+        [JsonProperty]
         public string Path { get; private set; } // Path to the folder with templates
 
-        
+        public void HideTemplate(string name)
+        {
+            Hidden ??= new List<string>();
+            
+            if (!Hidden.Contains(name))
+                Hidden.Add(name);
+        }
+
+        public void RemoveFromHidden(string name)
+        {
+            Hidden ??= new List<string>();
+
+            Hidden.Remove(name);
+        }
         public TemplateGroup(string language, string name, string path)
         {
-            Language = language;
+            if (language != null)
+                Language = language;
             Name = name;
             Path = path;
+            Hidden = new List<string>();
         }
 
     }

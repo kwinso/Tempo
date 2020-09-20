@@ -5,9 +5,28 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>Tempo</RootNamespace>
     </PropertyGroup>
-    
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>bin/Debug</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="bin\Debug\netcoreapp3.1\settings.json" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\api\.env" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\api\package.json" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\api\routers\api\v1\index.js" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\api\routers\api\v1\puppies.js" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\api\server.js" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\socket\package.json" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\socket\server.js" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\telegram\.env" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\telegram\bot.js" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Node\telegram\package.json" />
+      <None Include="bin\Debug\netcoreapp3.1\Templates\Python\hello\main.py" />
     </ItemGroup>
 
 </Project>
