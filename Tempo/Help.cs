@@ -7,7 +7,7 @@ namespace Tempo
             "\t Adds name of a template to unwatched in group.\n" +
             "\t Syntax: tempo show @<template_group_name>/<name_to_be_ignored>\n";
         
-        public static string WatchMessage =>
+        public static string ShowTemplateMessage =>
             "Command \"hide\":\n" +
             "\t Removes name from unwatched in group.\n" +
             "\t Syntax: tempo hide @<template_group_name>/<name_to_be_watched>\n";
@@ -44,7 +44,7 @@ namespace Tempo
                 $"{AddMessage}\n" +
                 $"{RemoveMessage}\n" +
                 $"{UnwatchMessage}\n" +
-                $"{WatchMessage}\n"
+                $"{ShowTemplateMessage}\n"
             );
             Logger.Info("Also there's a documentation in the Repository: https://github.com/uwumouse/Tempo");
         }

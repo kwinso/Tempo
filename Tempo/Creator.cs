@@ -9,7 +9,8 @@ namespace Tempo
     // Enum for checking languages 
     public enum Language
     {
-        Node
+        Node,
+        Python
     }
     public class Creator
     {
@@ -17,7 +18,7 @@ namespace Tempo
         {
             if (SettingsManager.TemplateGroups.Count < 1)
             {
-                throw new NullReferenceException("No templates in settings file.");
+                throw new NullReferenceException("No templates in settings file. Add your own with tempo add.");
             }
             
             // Check in templates if requested language exists. If so, try to parse language and create new project
@@ -34,10 +35,12 @@ namespace Tempo
                     
                     if (Directory.Exists($"{absolutePath}/{args.Template}")) // if Directory with template exists
                     {
-                        if (group.Hidden.Contains(args.Template))
+                        foreach (var hidden in group.Hidden)
                         {
-                            Logger.Error($"@{group.Name}/{args.Template} cannot be used since it's hidden.");
-                            return;
+                            if (args.Template.StartsWith(hidden))
+                            { 
+                                throw new Exception($"{group.Name}/{args.Template} cannot be used since it's hidden.");
+                            }
                         }
                         Logger.Info($"Template \"{args.Template}\" found in {group.Name} - {absolutePath}");
                         
@@ -51,6 +54,12 @@ namespace Tempo
                                 {
                                     TryInstallDependencies(Language.Node, projectRootPath);
                                     Logger.Info("NodeJS project created.");
+                                    break;
+                                }
+                                case "python":
+                                {
+                                    TryInstallDependencies(Language.Python, projectRootPath);
+                                    Logger.Info("Python project created.");
                                     break;
                                 }
                                 default:
@@ -152,6 +161,10 @@ namespace Tempo
                 {
                     Logger.Warning("Failed to install dependencies.");
                 }
+            }
+            else if (lang == Language.Python)
+            {
+                
             }
         }
         

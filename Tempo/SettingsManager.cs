@@ -14,6 +14,8 @@ namespace Tempo
 
         public static IReadOnlyList<TemplateGroup> TemplateGroups => _settings.TemplateGroups.AsReadOnly();
 
+        public static bool IsLoaded { get; private set; }
+
         // This method returns true if file successfully loaded
         public static void Load()
         {
@@ -26,6 +28,7 @@ namespace Tempo
             {
                 var json = File.ReadAllText(PathToSettingsFile);
                 _settings =  JsonConvert.DeserializeObject<SettingsFile>(json);
+                IsLoaded = true;
             }
             catch
             {
@@ -41,7 +44,7 @@ namespace Tempo
                 {
                     group.HideTemplate(templateName);
                     Save();
-                    Logger.Info($"@{groupName}/{templateName} no longer will be parsed as template");
+                    Logger.Info($"{groupName}/{templateName} no longer will be parsed as template");
                     return;
                 }
             }
@@ -57,7 +60,7 @@ namespace Tempo
                 {
                     templateGroup.RemoveFromHidden(templateName);
                     Save();
-                    Logger.Info($"@{groupName}/{templateName} will be parsed is a template now.");
+                    Logger.Info($"{groupName}/{templateName} will be parsed is a template now.");
                     return;
                 }
             }
@@ -80,7 +83,7 @@ namespace Tempo
                 if (templatesDir.Exists)
                 {
                     // Check if language is specified
-                    var groupLanguage = String.IsNullOrEmpty(group.Language.Trim())
+                    var groupLanguage = String.IsNullOrEmpty(group.Language)
                         ? "Not Specified"
                         : group.Language;
                     
@@ -88,10 +91,15 @@ namespace Tempo
                     foreach (var directory in templatesDir.GetDirectories())
                     {
                         var ignoredMessage = "";
-                        if (group.Hidden != null)
+                        if (group.Hidden != null && group.Hidden.Count > 0 && group.Hidden.Contains(directory.Name))
+                        {
+                            Console.BackgroundColor = ConsoleColor.Yellow;
+                            Console.ForegroundColor = ConsoleColor.Black;
                             ignoredMessage = group.Hidden.Contains(directory.Name) ? "[IGNORED]": "";
+                        }
                         
-                        Logger.Default($"\t{ignoredMessage} Template: {directory.Name}, language: { groupLanguage }, using: @{group.Name}/{directory.Name}");   
+                        Logger.Default($"\t{ignoredMessage} Template: {directory.Name}, language: { groupLanguage }, using: {group.Name}/{directory.Name}");  
+                        Console.ResetColor();
                     }
                 }
                 else
